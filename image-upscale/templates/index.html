@@ -1,13 +1,323 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Image Upscaler</title>
+    <title>AI Image Upscaler</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo i {
+            font-size: 48px;
+            color: #4a6cf7;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .upload-area:hover {
+            border-color: #4a6cf7;
+            background-color: #f8f9ff;
+        }
+        .upload-area.highlight {
+            border-color: #4a6cf7;
+            background-color: #f8f9ff;
+        }
+        .upload-area i {
+            font-size: 50px;
+            color: #4a6cf7;
+            margin-bottom: 15px;
+        }
+        .upload-area p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .upload-area input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .btn {
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background: #3a5be0;
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .preview-container {
+            margin-top: 30px;
+            display: none;
+        }
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: block;
+            margin: 0 auto;
+        }
+        .filename {
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .loader-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4a6cf7;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loader p {
+            margin-top: 15px;
+            color: #666;
+        }
+        .result-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+        }
+        .image-comparison {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .comparison-item {
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+        .comparison-item h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .comparison-item img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Upload Image to Upscale</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="image" required>
-        <input type="submit" value="Upscale">
-    </form>
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-image"></i>
+        </div>
+        <h1>AI Image Upscaler</h1>
+        
+        <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+            <div id="upload-area" class="upload-area">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag and drop your image here</p>
+                <p>or</p>
+                <p>Click to select an image</p>
+                <input type="file" name="image" id="file-input" accept="image/*" required>
+            </div>
+            
+            <div id="preview-container" class="preview-container">
+                <img id="preview-image" class="preview-image">
+                <p id="filename" class="filename"></p>
+            </div>
+            
+            <div class="btn-container">
+                <button type="submit" id="upload-btn" class="btn" disabled>Upscale Image</button>
+            </div>
+        </form>
+        
+        <div id="loader" class="loader">
+            <div class="loader-spinner"></div>
+            <p>Upscaling your image with AI magic. This may take a minute...</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Powered by Real-ESRGAN AI Technology</p>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const previewContainer = document.getElementById('preview-container');
+        const previewImage = document.getElementById('preview-image');
+        const filename = document.getElementById('filename');
+        const uploadBtn = document.getElementById('upload-btn');
+        const uploadForm = document.getElementById('upload-form');
+        const loader = document.getElementById('loader');
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // Highlight drop area when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        // Handle dropped files
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        // Handle selected files
+        fileInput.addEventListener('change', handleFiles);
+
+        // Handle form submission
+        uploadForm.addEventListener('submit', handleSubmit);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight() {
+            uploadArea.classList.add('highlight');
+        }
+
+        function unhighlight() {
+            uploadArea.classList.remove('highlight');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            handleFiles();
+        }
+
+        function handleFiles() {
+            const file = fileInput.files[0];
+            if (file) {
+                uploadBtn.disabled = false;
+                previewFile(file);
+            } else {
+                uploadBtn.disabled = true;
+                previewContainer.style.display = 'none';
+            }
+        }
+
+        function previewFile(file) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = function() {
+                previewImage.src = reader.result;
+                filename.textContent = file.name;
+                previewContainer.style.display = 'block';
+            }
+        }
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            
+            // Show loader and hide form
+            uploadArea.style.display = 'none';
+            previewContainer.style.display = 'none';
+            uploadBtn.disabled = true;
+            loader.style.display = 'block';
+            
+            // Submit the form
+            const formData = new FormData(uploadForm);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(html => {
+                document.body.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during upscaling. Please try again.');
+                uploadArea.style.display = 'block';
+                previewContainer.style.display = 'block';
+                uploadBtn.disabled = false;
+                loader.style.display = 'none';
+            });
+        }
+    </script>
 </body>
 </html>
