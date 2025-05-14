@@ -1,73 +1,217 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AI Image Upscaler</title>
+    <title>Mage - AI Image Upscaler</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --light-bg: #f8fafc;
+            --dark-text: #1e293b;
+            --medium-text: #475569;
+            --light-text: #94a3b8;
+            --border-color: #e2e8f0;
+            --accent-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+            --border-radius: 12px;
+            --box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
+        
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 40px 20px;
+            color: var(--dark-text);
         }
+        
         .container {
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 40px;
             margin-top: 20px;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--accent-gradient);
+        }
+        
         h1 {
-            color: #333;
+            color: var(--dark-text);
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 28px;
         }
+        
+        .app-description {
+            text-align: center;
+            color: var(--medium-text);
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        
         .logo {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
+        
         .logo i {
             font-size: 48px;
-            color: #4a6cf7;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            width: 90px;
+            height: 90px;
+            line-height: 90px;
+            border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15);
+            background-color: white;
         }
-        .upload-area {
-            border: 2px dashed #ccc;
+        
+        .settings-panel {
+            background: var(--light-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+        }
+        
+        .panel-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            color: var(--dark-text);
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .panel-title i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .model-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .model-option {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .model-option input[type="radio"] {
+            display: none;
+        }
+        
+        .model-option label {
+            display: block;
+            padding: 15px;
+            background: white;
+            border: 2px solid var(--border-color);
             border-radius: 10px;
-            padding: 40px 20px;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .model-option input[type="radio"]:checked + label {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+            color: var(--primary-color);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
+        }
+        
+        .model-info {
+            font-size: 14px;
+            color: var(--medium-text);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .model-info i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 50px 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: var(--transition);
             position: relative;
+            background: white;
+            margin-bottom: 25px;
         }
+        
         .upload-area:hover {
-            border-color: #4a6cf7;
-            background-color: #f8f9ff;
+            border-color: var(--primary-color);
+            background-color: rgba(99, 102, 241, 0.02);
         }
+        
         .upload-area.highlight {
-            border-color: #4a6cf7;
-            background-color: #f8f9ff;
+            border-color: var(--primary-color);
+            background-color: rgba(99, 102, 241, 0.05);
+            transform: scale(1.01);
         }
+        
         .upload-area i {
-            font-size: 50px;
-            color: #4a6cf7;
-            margin-bottom: 15px;
+            font-size: 55px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            transition: var(--transition);
         }
+        
+        .upload-area:hover i {
+            transform: translateY(-5px);
+        }
+        
         .upload-area p {
-            color: #666;
+            color: var(--medium-text);
             margin-bottom: 10px;
+            font-size: 16px;
         }
+        
         .upload-area input {
             position: absolute;
             width: 100%;
@@ -77,115 +221,324 @@
             opacity: 0;
             cursor: pointer;
         }
+        
         .btn {
-            background: #4a6cf7;
+            background: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
+            padding: 14px 28px;
+            border-radius: 10px;
             font-size: 16px;
             cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.3s;
-            display: inline-block;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 600;
             text-decoration: none;
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.25);
         }
+        
         .btn:hover {
-            background: #3a5be0;
-            transform: translateY(-2px);
+            background: var(--primary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
         }
+        
         .btn:disabled {
-            background: #ccc;
+            background: var(--light-text);
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
+        
         .btn-container {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 30px;
         }
+        
         .preview-container {
             margin-top: 30px;
             display: none;
+            background: var(--light-bg);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
         }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .preview-title {
+            font-weight: 600;
+            color: var(--dark-text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+        }
+        
         .preview-image {
             max-width: 100%;
-            max-height: 300px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-height: 350px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
             display: block;
             margin: 0 auto;
+            transition: var(--transition);
         }
+        
         .filename {
             text-align: center;
-            color: #666;
-            margin-top: 10px;
+            color: var(--medium-text);
+            margin-top: 15px;
             font-size: 14px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid var(--border-color);
         }
+        
         .loader {
             display: none;
             text-align: center;
-            margin-top: 30px;
+            margin-top: 40px;
+            padding: 30px;
         }
+        
         .loader-spinner {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #4a6cf7;
+            border: 4px solid rgba(99, 102, 241, 0.1);
+            border-top: 4px solid var(--primary-color);
             border-radius: 50%;
             width: 50px;
             height: 50px;
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
         .loader p {
-            margin-top: 15px;
-            color: #666;
+            margin-top: 20px;
+            color: var (--medium-text);
+            font-size: 16px;
         }
-        .result-container {
+        
+        .features-bar {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 30px;
-        }
-        .image-comparison {
-            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
             flex-wrap: wrap;
-            justify-content: center;
             gap: 20px;
-            width: 100%;
-            margin-bottom: 20px;
         }
-        .comparison-item {
+        
+        .feature {
+            text-align: center;
             flex: 1;
-            min-width: 300px;
-            text-align: center;
+            min-width: 160px;
+            padding: 25px 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
         }
-        .comparison-item h3 {
+        
+        .feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+        
+        .feature i {
+            font-size: 32px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+        
+        .feature h3 {
+            font-size: 17px;
             margin-bottom: 10px;
-            color: #333;
+            color: var(--dark-text);
+            font-weight: 600;
         }
-        .comparison-item img {
-            max-width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        .footer {
-            margin-top: 50px;
-            text-align: center;
-            color: #666;
+        
+        .feature p {
             font-size: 14px;
+            color: var(--medium-text);
+        }
+        
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            color: var(--medium-text);
+            font-size: 14px;
+            padding: 20px;
+        }
+        
+        .options-panel {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        .option-group {
+            margin-bottom: 15px;
+        }
+        
+        .option-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-text);
+        }
+        
+        .option-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            font-size: 15px;
+            color: var(--dark-text);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236366f1' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            transition: var(--transition);
+        }
+        
+        .option-group select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        
+        .option-help {
+            font-size: 13px;
+            color: var(--medium-text);
+            margin-top: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+            
+            .model-options {
+                flex-direction: column;
+            }
+            
+            .model-option {
+                width: 100%;
+            }
+            
+            .features-bar {
+                flex-direction: column;
+            }
+            
+            .feature {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .panel-title {
+                font-size: 16px;
+            }
+        }
+        
+        /* Modern Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .container {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .preview-image:hover {
+            transform: scale(1.02);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">
-            <i class="fas fa-image"></i>
+            <i class="fas fa-wand-magic-sparkles"></i>
         </div>
-        <h1>AI Image Upscaler</h1>
+        <h1>Mage AI Image Upscaler</h1>
+        <p class="app-description">Enhance your images with cutting-edge AI technology</p>
+        
+        <div class="settings-panel">
+            <h3 class="panel-title"><i class="fas fa-sliders"></i>Model Selection</h3>
+            <div class="model-options">
+                <div class="model-option">
+                    <input type="radio" id="model-standard" name="model" value="RealESRGAN_x4plus" checked>
+                    <label for="model-standard">Standard (x4)</label>
+                </div>
+                <div class="model-option">
+                    <input type="radio" id="model-anime" name="model" value="RealESRGAN_x4plus_anime_6B">
+                    <label for="model-anime">Anime (x4)</label>
+                </div>
+                <div class="model-option">
+                    <input type="radio" id="model-photo" name="model" value="realesr-general-x4v3">
+                    <label for="model-photo">Photo Realistic (x4)</label>
+                </div>
+            </div>
+            <div class="model-info">
+                <i class="fas fa-info-circle"></i>
+                <span id="model-description">Standard model balances quality and processing speed.</span>
+            </div>
+        </div>
+        
+        <div class="features-bar">
+            <div class="feature">
+                <i class="fas fa-expand"></i>
+                <h3>4x Upscaling</h3>
+                <p>Increase image resolution</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-image"></i>
+                <h3>Detail Enhancement</h3>
+                <p>Reveal fine details</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-magic"></i>
+                <h3>Noise Reduction</h3>
+                <p>Remove compression artifacts</p>
+            </div>
+        </div>
         
         <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+            <input type="hidden" id="selected-model" name="model" value="RealESRGAN_x4plus">
+            
             <div id="upload-area" class="upload-area">
                 <i class="fas fa-cloud-upload-alt"></i>
                 <p>Drag and drop your image here</p>
@@ -195,12 +548,35 @@
             </div>
             
             <div id="preview-container" class="preview-container">
+                <div class="preview-header">
+                    <div class="preview-title">
+                        <i class="fas fa-image"></i>
+                        <span>Image Preview</span>
+                    </div>
+                    <button type="button" id="remove-preview" class="btn" style="padding: 8px 15px; font-size: 14px; background-color: #ef4444;">
+                        <i class="fas fa-times"></i> Remove
+                    </button>
+                </div>
                 <img id="preview-image" class="preview-image">
                 <p id="filename" class="filename"></p>
             </div>
             
+            <div class="options-panel">
+                <div class="option-group">
+                    <label for="resolution">Resolution Scale:</label>
+                    <select name="resolution" id="resolution">
+                        {% for scale, name in resolutions.items() %}
+                        <option value="{{ scale }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="option-help">Choose how much to upscale the image</div>
+                </div>
+            </div>
+            
             <div class="btn-container">
-                <button type="submit" id="upload-btn" class="btn" disabled>Upscale Image</button>
+                <button type="submit" id="upload-btn" class="btn" disabled>
+                    <i class="fas fa-wand-magic-sparkles"></i> Upscale Image
+                </button>
             </div>
         </form>
         
@@ -211,7 +587,7 @@
     </div>
 
     <div class="footer">
-        <p>Powered by Real-ESRGAN AI Technology</p>
+        <p>Powered by Real-ESRGAN AI Technology | Mage AI Image Enhancer</p>
     </div>
 
     <script>
@@ -223,6 +599,26 @@
         const uploadBtn = document.getElementById('upload-btn');
         const uploadForm = document.getElementById('upload-form');
         const loader = document.getElementById('loader');
+        const removePreviewBtn = document.getElementById('remove-preview');
+        const modelOptions = document.querySelectorAll('input[name="model"]');
+        const modelDescription = document.getElementById('model-description');
+        const selectedModelInput = document.getElementById('selected-model');
+
+        // Model descriptions
+        const modelDescriptions = {
+            'RealESRGAN_x4plus': 'Standard model balances quality and processing speed.',
+            'RealESRGAN_x4plus_anime_6B': 'Optimized for anime and cartoon images.',
+            'realesr-general-x4v3': 'Enhanced detail for photographs and realistic images.'
+        };
+
+        // Update model description when selection changes
+        modelOptions.forEach(option => {
+            option.addEventListener('change', function() {
+                const modelValue = this.value;
+                modelDescription.textContent = modelDescriptions[modelValue];
+                selectedModelInput.value = modelValue;
+            });
+        });
 
         // Prevent default drag behaviors
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -247,6 +643,13 @@
 
         // Handle form submission
         uploadForm.addEventListener('submit', handleSubmit);
+
+        // Remove preview
+        removePreviewBtn.addEventListener('click', function() {
+            previewContainer.style.display = 'none';
+            fileInput.value = '';
+            uploadBtn.disabled = true;
+        });
 
         function preventDefaults(e) {
             e.preventDefault();
