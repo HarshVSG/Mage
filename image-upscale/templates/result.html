@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Enhanced! - AI Image Upscaler</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Comfortaa:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Decorative bubbles -->
+        <div class="bubble bubble-1"></div>
+        <div class="bubble bubble-2"></div>
+        <div class="bubble bubble-3"></div>
+        
+        <div class="header">
+            <h1>Image Successfully Enhanced!</h1>
+            <p class="app-description">✨ Your image has been magically transformed ✨</p>
+        </div>
+        
+        <div id="result-container" style="display: block;">
+            <div class="comparison-view">
+                <div class="comparison-title">Before & After</div>
+                <div class="image-comparison">
+                    <div class="comparison-item">
+                        <img id="compare-before" src="/static/uploads/{{ original_filename }}" alt="Original">
+                        <div class="comparison-label">Original</div>
+                    </div>
+                    <div class="comparison-item">
+                        <img id="compare-after" src="/static/outputs/{{ output_filename }}" alt="Enhanced">
+                        <div class="comparison-label">Enhanced</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-actions">
+                <a href="/download/{{ output_filename }}" class="btn-download">
+                    <i class="fas fa-download"></i> Download
+                </a>
+                <a href="/" class="btn" id="new-image-btn">
+                    <i class="fas fa-plus"></i> New Image
+                </a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2023 AI Image Upscaler</p>
+        </div>
+    </div>
+    
+    <script>
+        // Create confetti animation on page load
+        function createConfetti() {
+            const colors = [
+                '#ff6b6b', // primary
+                '#4ecdc4', // secondary
+                '#ffbe0b', // accent
+                '#f9f7f7' // white
+            ];
+            
+            // Create 50 pieces of confetti
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                // Random position, color and delay
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                
+                // Add to body
+                document.body.appendChild(confetti);
+                
+                // Remove after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 6000);
+            }
+        }
+        
+        // Run the confetti animation when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            createConfetti();
+        });
+    </script>
+</body>
+</html>

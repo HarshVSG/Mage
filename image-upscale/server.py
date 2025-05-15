@@ -94,22 +94,47 @@ def upload():
     # Clean up all files from previous sessions
     cleanup_immediately()
     
+    # Check if files are present in the request
+    if 'image' not in request.files:
+        print("No 'image' in request.files")
+        return 'No file uploaded.', 400
+        
     file = request.files['image']
+    
+    # Check if the file has a filename (empty files have no filename)
+    if file.filename == '':
+        print("Empty filename")
+        return 'No file selected.', 400
+    
     model = request.form.get('model', 'RealESRGAN_x4plus')
     resolution = request.form.get('resolution', '4')  # Default to 4x if not specified
+    denoise = request.form.get('denoise', '0.5')  # Get denoise value
     
-    if not file:
-        return 'No file uploaded.', 400
-
+    print(f"Processing with model: {model}, resolution: {resolution}, denoise: {denoise}")
+    
     if model not in MODELS:
+        print(f"Invalid model: {model}")
         return 'Invalid model selected.', 400
         
     if resolution not in RESOLUTIONS:
+        print(f"Invalid resolution: {resolution}")
         return 'Invalid resolution selected.', 400
-        
+    
+    # Fix potential path traversal issues with secure_filename
     filename = secure_filename(file.filename)
     input_path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(input_path)
+    
+    # Ensure the directories exist
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+    
+    # Save the uploaded file
+    try:
+        file.save(input_path)
+        print(f"File saved to {input_path}")
+    except Exception as e:
+        print(f"Error saving file: {e}")
+        return f'Error saving file: {str(e)}', 500
     
     # Track this file in our session
     session_id = request.cookies.get('session', str(time.time()))
@@ -122,6 +147,7 @@ def upload():
     output_filename = f'{name}_out{ext}'
     output_path = os.path.join(OUTPUT_FOLDER, output_filename)
     
+    # Build the command with the denoise parameter
     command = [
         "python", "Real-ESRGAN/inference_realesrgan.py",
         "-n", model,
@@ -131,10 +157,29 @@ def upload():
         "-s", resolution  # Use the selected resolution scale factor
     ]
     
+    # Add denoise parameter if it's not "0" (None)
+    if denoise != "0":
+        command.extend(["-d", denoise])
+    
     print(f"Running command: {' '.join(command)}")
-    result = subprocess.run(command, cwd=os.path.dirname(os.path.abspath(__file__)), capture_output=True, text=True)
-    print(f"Command output: {result.stdout}")
-    print(f"Command error: {result.stderr}")
+    
+    try:
+        # Set a timeout to prevent hanging
+        result = subprocess.run(command, cwd=os.path.dirname(os.path.abspath(__file__)), 
+                              capture_output=True, text=True, timeout=120)
+        print(f"Command output: {result.stdout}")
+        print(f"Command error: {result.stderr}")
+        
+        # If the subprocess returns non-zero, there was an error
+        if result.returncode != 0:
+            print(f"Command failed with return code {result.returncode}")
+            return f'Processing failed with error: {result.stderr}', 500
+    except subprocess.TimeoutExpired:
+        print("Command timed out after 120 seconds")
+        return 'Processing timed out, please try again with a smaller image.', 504
+    except Exception as e:
+        print(f"Error running command: {str(e)}")
+        return f'Error processing image: {str(e)}', 500
     
     # Check if output file exists
     if os.path.exists(output_path):
@@ -153,6 +198,8 @@ def upload():
             print(f"Found possible output file: {output_path}")
             # Track this output file in our session
             SESSION_FILES[session_id].append(output_path)
+        else:
+            return 'Processing completed but output file was not created. Please try again.', 500
 
     return redirect(url_for('show_result', filename=output_filename, original=filename, model=model, resolution=resolution))
 
@@ -209,384 +256,11 @@ def show_result(filename):
         </script>
         """
         
-        return f'''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Mage - Upscaled Result</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-            {cleanup_script}
-            <style>
-                :root {{
-                    --primary-color: #4a6cf7;
-                    --primary-hover: #3a5be0;
-                    --secondary-color: #6c757d;
-                    --success-color: #4BB543;
-                    --light-bg: #f8f9ff;
-                    --border-radius: 15px;
-                    --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-                    --transition: all 0.3s ease;
-                }}
-                
-                * {{
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                    font-family: 'Poppins', sans-serif;
-                }}
-                
-                body {{
-                    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                    min-height: 100vh;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    padding: 40px 20px;
-                }}
-                
-                .container {{
-                    max-width: 1000px;
-                    width: 100%;
-                    background-color: white;
-                    border-radius: var(--border-radius);
-                    box-shadow: var(--box-shadow);
-                    padding: 30px;
-                    margin-top: 20px;
-                    position: relative;
-                    overflow: hidden;
-                }}
-                
-                .container::before {{
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 5px;
-                    background: linear-gradient(90deg, var(--primary-color), #8e2de2);
-                }}
-                
-                h1, h2 {{
-                    color: #333;
-                    text-align: center;
-                    margin-bottom: 30px;
-                    font-weight: 600;
-                }}
-                
-                .success-header {{
-                    text-align: center;
-                    margin-bottom: 30px;
-                }}
-                
-                .success-icon {{
-                    text-align: center;
-                    margin-bottom: 20px;
-                    background: var(--light-bg);
-                    width: 80px;
-                    height: 80px;
-                    line-height: 80px;
-                    border-radius: 50%;
-                    display: inline-block;
-                }}
-                
-                .success-icon i {{
-                    font-size: 40px;
-                    color: var(--success-color);
-                }}
-                
-                .model-badge {{
-                    display: inline-block;
-                    background: var(--light-bg);
-                    padding: 8px 15px;
-                    border-radius: 20px;
-                    margin-top: 10px;
-                    font-size: 14px;
-                    color: var(--primary-color);
-                }}
-                
-                .image-comparison {{
-                    display: flex;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                    gap: 30px;
-                    margin-bottom: 40px;
-                }}
-                
-                .image-box {{
-                    flex: 1;
-                    min-width: 300px;
-                    background-color: var(--light-bg);
-                    border-radius: var(--border-radius);
-                    padding: 20px;
-                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-                    transition: var(--transition);
-                }}
-                
-                .image-box:hover {{
-                    transform: translateY(-5px);
-                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-                }}
-                
-                .image-box h3 {{
-                    text-align: center;
-                    margin-bottom: 15px;
-                    color: #333;
-                    font-weight: 500;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                }}
-                
-                .image-box h3 i {{
-                    color: var(--primary-color);
-                }}
-                
-                .image-box img {{
-                    max-width: 100%;
-                    border-radius: 8px;
-                    display: block;
-                    margin: 0 auto;
-                    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-                }}
-                
-                .details {{
-                    margin-top: 15px;
-                    padding: 15px;
-                    background: white;
-                    border-radius: 8px;
-                }}
-                
-                .detail-item {{
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 8px;
-                    font-size: 14px;
-                    color: #666;
-                }}
-                
-                .detail-item:last-child {{
-                    margin-bottom: 0;
-                }}
-                
-                .btn {{
-                    background: var(--primary-color);
-                    color: white;
-                    border: none;
-                    padding: 12px 25px;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    cursor: pointer;
-                    transition: var(--transition);
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                    font-weight: 500;
-                    text-decoration: none;
-                }}
-                
-                .btn:hover {{
-                    background: var(--primary-hover);
-                    transform: translateY(-2px);
-                }}
-                
-                .btn-container {{
-                    display: flex;
-                    justify-content: center;
-                    gap: 20px;
-                    flex-wrap: wrap;
-                    margin: 30px 0;
-                }}
-                
-                .feature-list {{
-                    margin-top: 40px;
-                    background-color: var(--light-bg);
-                    border-radius: var(--border-radius);
-                    padding: 25px;
-                }}
-                
-                .feature-list h3 {{
-                    text-align: center;
-                    margin-bottom: 20px;
-                    color: #333;
-                    font-weight: 500;
-                }}
-                
-                .features-grid {{
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 20px;
-                }}
-                
-                .feature-item {{
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 10px;
-                }}
-                
-                .feature-item i {{
-                    color: var(--success-color);
-                    font-size: 18px;
-                    margin-top: 2px;
-                }}
-                
-                .feature-content h4 {{
-                    font-size: 16px;
-                    margin-bottom: 5px;
-                    color: #333;
-                }}
-                
-                .feature-content p {{
-                    font-size: 14px;
-                    color: #666;
-                }}
-                
-                .footer {{
-                    margin-top: 50px;
-                    text-align: center;
-                    color: #666;
-                    font-size: 14px;
-                }}
-                
-                @media (max-width: 768px) {{
-                    .container {{
-                        padding: 20px;
-                    }}
-                    
-                    .image-comparison {{
-                        flex-direction: column;
-                    }}
-                    
-                    .btn-container {{
-                        flex-direction: column;
-                    }}
-                    
-                    .btn {{
-                        width: 100%;
-                    }}
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="success-header">
-                    <div class="success-icon">
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <h1>Image Successfully Upscaled!</h1>
-                    <div class="model-badge">
-                        <i class="fas fa-wand-magic-sparkles"></i> Upscaled with {model_name} at {resolution_name}
-                    </div>
-                </div>
-                
-                <div class="image-comparison">
-                    <div class="image-box">
-                        <h3><i class="fas fa-image"></i> Original Image</h3>
-                        <img src="/static/uploads/{original}" alt="Original Image">
-                        <div class="details">
-                            <div class="detail-item">
-                                <span>File Size</span>
-                                <span>{original_size:.2f} MB</span>
-                            </div>
-                            <div class="detail-item">
-                                <span>Dimensions</span>
-                                <span>{original_dimensions}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span>Format</span>
-                                <span>{os.path.splitext(original)[1].upper().replace('.', '')}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="image-box">
-                        <h3><i class="fas fa-wand-magic-sparkles"></i> Upscaled Image</h3>
-                        <img src="/static/outputs/{filename}" alt="Upscaled Image">
-                        <div class="details">
-                            <div class="detail-item">
-                                <span>File Size</span>
-                                <span>{output_size:.2f} MB</span>
-                            </div>
-                            <div class="detail-item">
-                                <span>Dimensions</span>
-                                <span>{output_dimensions}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span>Format</span>
-                                <span>{os.path.splitext(filename)[1].upper().replace('.', '')}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="btn-container">
-                    <a href="/download/{filename}" class="btn">
-                        <i class="fas fa-download"></i> Download Upscaled Image
-                    </a>
-                    <a href="/" class="btn">
-                        <i class="fas fa-redo"></i> Upscale Another Image
-                    </a>
-                </div>
-                
-                <div class="feature-list">
-                    <h3>About Mage AI Image Upscaler</h3>
-                    <div class="features-grid">
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <div class="feature-content">
-                                <h4>Advanced AI Models</h4>
-                                <p>Powered by Real-ESRGAN technology</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <div class="feature-content">
-                                <h4>4x Resolution</h4>
-                                <p>Increases image size by up to 4 times</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <div class="feature-content">
-                                <h4>Detail Enhancement</h4>
-                                <p>Recovers and sharpens fine details</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <div class="feature-content">
-                                <h4>Noise Reduction</h4>
-                                <p>Removes compression artifacts</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <div class="feature-content">
-                                <h4>Specialized Models</h4>
-                                <p>Options for photos, anime, and art</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <div class="feature-content">
-                                <h4>Free to Use</h4>
-                                <p>No watermarks or limits</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="footer">
-                <p>Powered by Real-ESRGAN AI Technology | Mage AI Image Enhancer</p>
-                <p>© {datetime.datetime.now().year} Mage</p>
-            </div>
-        </body>
-        </html>
-        '''
+        return render_template('result.html', 
+                              original_filename=original,
+                              output_filename=filename,
+                              model_name=model_name,
+                              resolution_name=resolution_name)
     else:
         # If not found, list available files
         available_files = os.listdir(OUTPUT_FOLDER)
@@ -747,6 +421,14 @@ def download_file(filename):
         SESSION_FILES[session_id].append(file_path)
     
     return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
+
+# Define additional static folders
+@app.route('/static/images/<path:filename>')
+def serve_images(filename):
+    return send_from_directory('static/images', filename)
+
+# Ensure the images directory exists
+os.makedirs('static/images', exist_ok=True)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,726 +1,380 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Mage - AI Image Upscaler</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mage</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #6366f1;
-            --primary-hover: #4f46e5;
-            --secondary-color: #64748b;
-            --success-color: #10b981;
-            --light-bg: #f8fafc;
-            --dark-text: #1e293b;
-            --medium-text: #475569;
-            --light-text: #94a3b8;
-            --border-color: #e2e8f0;
-            --accent-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
-            --border-radius: 12px;
-            --box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-            color: var(--dark-text);
-        }
-        
-        .container {
-            max-width: 900px;
-            width: 100%;
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            padding: 40px;
-            margin-top: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: var(--accent-gradient);
-        }
-        
-        h1 {
-            color: var(--dark-text);
-            text-align: center;
-            margin-bottom: 10px;
-            font-weight: 700;
-            font-size: 28px;
-        }
-        
-        .app-description {
-            text-align: center;
-            color: var(--medium-text);
-            margin-bottom: 40px;
-            font-size: 16px;
-        }
-        
-        .logo {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        
-        .logo i {
-            font-size: 48px;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            width: 90px;
-            height: 90px;
-            line-height: 90px;
-            border-radius: 50%;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15);
-            background-color: white;
-        }
-        
-        .settings-panel {
-            background: var(--light-bg);
-            border-radius: var(--border-radius);
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-            border: 1px solid var(--border-color);
-        }
-        
-        .panel-title {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            color: var(--dark-text);
-            font-weight: 600;
-            font-size: 18px;
-        }
-        
-        .panel-title i {
-            margin-right: 10px;
-            color: var(--primary-color);
-        }
-        
-        .model-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .model-option {
-            flex: 1;
-            min-width: 120px;
-        }
-        
-        .model-option input[type="radio"] {
-            display: none;
-        }
-        
-        .model-option label {
-            display: block;
-            padding: 15px;
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            cursor: pointer;
-            text-align: center;
-            transition: var(--transition);
-            font-size: 15px;
-            font-weight: 500;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-        
-        .model-option input[type="radio"]:checked + label {
-            border-color: var(--primary-color);
-            background: rgba(99, 102, 241, 0.05);
-            color: var(--primary-color);
-            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.15);
-        }
-        
-        .model-info {
-            font-size: 14px;
-            color: var(--medium-text);
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            background: white;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        
-        .model-info i {
-            margin-right: 10px;
-            color: var(--primary-color);
-        }
-        
-        .upload-area {
-            border: 2px dashed var(--border-color);
-            border-radius: var(--border-radius);
-            padding: 50px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-            background: white;
-            margin-bottom: 25px;
-        }
-        
-        .upload-area:hover {
-            border-color: var(--primary-color);
-            background-color: rgba(99, 102, 241, 0.02);
-        }
-        
-        .upload-area.highlight {
-            border-color: var(--primary-color);
-            background-color: rgba(99, 102, 241, 0.05);
-            transform: scale(1.01);
-        }
-        
-        .upload-area i {
-            font-size: 55px;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            transition: var(--transition);
-        }
-        
-        .upload-area:hover i {
-            transform: translateY(-5px);
-        }
-        
-        .upload-area p {
-            color: var(--medium-text);
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-        
-        .upload-area input {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-        
-        .btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-weight: 600;
-            text-decoration: none;
-            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.25);
-        }
-        
-        .btn:hover {
-            background: var(--primary-hover);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
-        }
-        
-        .btn:disabled {
-            background: var(--light-text);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .btn-container {
-            text-align: center;
-            margin-top: 30px;
-        }
-        
-        .preview-container {
-            margin-top: 30px;
-            display: none;
-            background: var(--light-bg);
-            padding: 25px;
-            border-radius: var(--border-radius);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-        }
-        
-        .preview-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .preview-title {
-            font-weight: 600;
-            color: var(--dark-text);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 16px;
-        }
-        
-        .preview-image {
-            max-width: 100%;
-            max-height: 350px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            display: block;
-            margin: 0 auto;
-            transition: var(--transition);
-        }
-        
-        .filename {
-            text-align: center;
-            color: var(--medium-text);
-            margin-top: 15px;
-            font-size: 14px;
-            background: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-left: auto;
-            margin-right: auto;
-            border: 1px solid var(--border-color);
-        }
-        
-        .loader {
-            display: none;
-            text-align: center;
-            margin-top: 40px;
-            padding: 30px;
-        }
-        
-        .loader-spinner {
-            border: 4px solid rgba(99, 102, 241, 0.1);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loader p {
-            margin-top: 20px;
-            color: var (--medium-text);
-            font-size: 16px;
-        }
-        
-        .features-bar {
-            display: flex;
-            justify-content: space-around;
-            margin: 40px 0;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        
-        .feature {
-            text-align: center;
-            flex: 1;
-            min-width: 160px;
-            padding: 25px 15px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border-color);
-            transition: var(--transition);
-        }
-        
-        .feature:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-        }
-        
-        .feature i {
-            font-size: 32px;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 15px;
-        }
-        
-        .feature h3 {
-            font-size: 17px;
-            margin-bottom: 10px;
-            color: var(--dark-text);
-            font-weight: 600;
-        }
-        
-        .feature p {
-            font-size: 14px;
-            color: var(--medium-text);
-        }
-        
-        .footer {
-            margin-top: 60px;
-            text-align: center;
-            color: var(--medium-text);
-            font-size: 14px;
-            padding: 20px;
-        }
-        
-        .options-panel {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 25px;
-            margin-top: 25px;
-            margin-bottom: 25px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-        }
-        
-        .option-group {
-            margin-bottom: 15px;
-        }
-        
-        .option-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--dark-text);
-        }
-        
-        .option-group select {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: white;
-            font-size: 15px;
-            color: var(--dark-text);
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236366f1' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            transition: var(--transition);
-        }
-        
-        .option-group select:focus {
-            border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-        
-        .option-help {
-            font-size: 13px;
-            color: var(--medium-text);
-            margin-top: 8px;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 25px;
-            }
-            
-            .model-options {
-                flex-direction: column;
-            }
-            
-            .model-option {
-                width: 100%;
-            }
-            
-            .features-bar {
-                flex-direction: column;
-            }
-            
-            .feature {
-                width: 100%;
-                margin-bottom: 15px;
-            }
-            
-            .btn {
-                width: 100%;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            .panel-title {
-                font-size: 16px;
-            }
-        }
-        
-        /* Modern Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .container {
-            animation: fadeIn 0.6s ease-out;
-        }
-        
-        .preview-image:hover {
-            transform: scale(1.02);
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Comfortaa:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Add floating bubble background -->
+    <div class="bubble-background" id="bubble-background"></div>
+    
     <div class="container">
-        <div class="logo">
-            <i class="fas fa-wand-magic-sparkles"></i>
-        </div>
-        <h1>Mage AI Image Upscaler</h1>
-        <p class="app-description">Enhance your images with cutting-edge AI technology</p>
+        <!-- Decorative bubbles -->
+        <div class="bubble bubble-1"></div>
+        <div class="bubble bubble-2"></div>
+        <div class="bubble bubble-3"></div>
         
-        <div class="settings-panel">
-            <h3 class="panel-title"><i class="fas fa-sliders"></i>Model Selection</h3>
-            <div class="model-options">
-                <div class="model-option">
-                    <input type="radio" id="model-standard" name="model" value="RealESRGAN_x4plus" checked>
-                    <label for="model-standard">Standard (x4)</label>
-                </div>
-                <div class="model-option">
-                    <input type="radio" id="model-anime" name="model" value="RealESRGAN_x4plus_anime_6B">
-                    <label for="model-anime">Anime (x4)</label>
-                </div>
-                <div class="model-option">
-                    <input type="radio" id="model-photo" name="model" value="realesr-general-x4v3">
-                    <label for="model-photo">Photo Realistic (x4)</label>
-                </div>
-            </div>
-            <div class="model-info">
-                <i class="fas fa-info-circle"></i>
-                <span id="model-description">Standard model balances quality and processing speed.</span>
-            </div>
-        </div>
-        
-        <div class="features-bar">
-            <div class="feature">
-                <i class="fas fa-expand"></i>
-                <h3>4x Upscaling</h3>
-                <p>Increase image resolution</p>
-            </div>
-            <div class="feature">
-                <i class="fas fa-image"></i>
-                <h3>Detail Enhancement</h3>
-                <p>Reveal fine details</p>
-            </div>
-            <div class="feature">
-                <i class="fas fa-magic"></i>
-                <h3>Noise Reduction</h3>
-                <p>Remove compression artifacts</p>
-            </div>
+        <div class="header">
+            <h1>Mage</h1>
+            <p class="app-description">✨ Enhance your images with Real-ESRGAN ✨</p>
         </div>
         
         <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
-            <input type="hidden" id="selected-model" name="model" value="RealESRGAN_x4plus">
-            
-            <div id="upload-area" class="upload-area">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p>Drag and drop your image here</p>
-                <p>or</p>
-                <p>Click to select an image</p>
-                <input type="file" name="image" id="file-input" accept="image/*" required>
-            </div>
-            
-            <div id="preview-container" class="preview-container">
-                <div class="preview-header">
-                    <div class="preview-title">
-                        <i class="fas fa-image"></i>
-                        <span>Image Preview</span>
+            <div class="main-layout">
+                <!-- Left column: Options and settings -->
+                <div class="options-column">
+                    <div class="settings-panel">
+                        <div class="panel-title">
+                            <i class="fas fa-microchip"></i> Model Selection
+                        </div>
+                        <div class="model-options">
+                            <div class="model-option">
+                                <input type="radio" id="model-realesrgan-x4plus" name="model" value="RealESRGAN_x4plus" checked>
+                                <label for="model-realesrgan-x4plus">Real-ESRGAN-x4plus</label>
+                            </div>
+                            <div class="model-option">
+                                <input type="radio" id="model-realesrgan-x4plus-anime" name="model" value="RealESRGAN_x4plus_anime_6B">
+                                <label for="model-realesrgan-x4plus-anime">Real-ESRGAN-x4plus-anime</label>
+                            </div>
+                            <div class="model-option">
+                                <input type="radio" id="model-realesrnet-x4plus" name="model" value="realesr-general-x4v3">
+                                <label for="model-realesrnet-x4plus">REALESR-General-x4v3</label>
+                            </div>
+                        </div>
+                        <div class="model-info" id="model-description">
+                            Standard model balances quality and processing speed.
+                        </div>
                     </div>
-                    <button type="button" id="remove-preview" class="btn" style="padding: 8px 15px; font-size: 14px; background-color: #ef4444;">
-                        <i class="fas fa-times"></i> Remove
-                    </button>
+                    
+                    <div class="options-panel">
+                        <div class="panel-title">
+                            <i class="fas fa-cog"></i> Settings
+                        </div>
+                        
+                        <div class="option-group">
+                            <label for="resolution">Scale Factor:</label>
+                            <select id="resolution" name="resolution">
+                                <option value="2">2x</option>
+                                <option value="4" selected>4x</option>
+                            </select>
+                            <p class="option-help">Higher values produce larger images but take longer</p>
+                        </div>
+                        
+                        <div class="option-group">
+                            <label for="denoise">Denoise Strength:</label>
+                            <select id="denoise" name="denoise">
+                                <option value="0">None</option>
+                                <option value="0.3">Low</option>
+                                <option value="0.5" selected>Medium</option>
+                                <option value="0.7">High</option>
+                            </select>
+                            <p class="option-help">Reduces noise in the upscaled image</p>
+                        </div>
+                    </div>
                 </div>
-                <img id="preview-image" class="preview-image">
-                <p id="filename" class="filename"></p>
-            </div>
-            
-            <div class="options-panel">
-                <div class="option-group">
-                    <label for="resolution">Resolution Scale:</label>
-                    <select name="resolution" id="resolution">
-                        {% for scale, name in resolutions.items() %}
-                        <option value="{{ scale }}">{{ name }}</option>
-                        {% endfor %}
-                    </select>
-                    <div class="option-help">Choose how much to upscale the image</div>
+                
+                <!-- Right column: Upload and preview -->
+                <div class="content-column">
+                    <div class="upload-area" id="upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Drag & Drop your image here</p>
+                        <p>or click to browse files</p>
+                        <input type="file" id="file-upload" name="image" accept="image/*">
+                    </div>
+                    
+                    <div class="preview-container" id="preview-container" style="display: none;">
+                        <div class="preview-header">
+                            <div class="preview-title">
+                                <i class="fas fa-image"></i> Image Preview
+                            </div>
+                        </div>
+                        <img id="preview-image" class="preview-image" src="" alt="Preview">
+                        <div class="filename" id="filename">filename.jpg</div>
+                    </div>
+                    
+                    <div class="loader" id="loader" style="display: none;">
+                        <div class="loader-spinner"></div>
+                        <p>Enhancing your image...</p>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button type="submit" class="btn" id="process-btn" disabled>
+                            <i class="fas fa-magic"></i> Enhance Image
+                        </button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="btn-container">
-                <button type="submit" id="upload-btn" class="btn" disabled>
-                    <i class="fas fa-wand-magic-sparkles"></i> Upscale Image
-                </button>
             </div>
         </form>
         
-        <div id="loader" class="loader">
-            <div class="loader-spinner"></div>
-            <p>Upscaling your image with AI magic. This may take a minute...</p>
+        <div class="preview-container" id="result-container" style="display:none;">
+            <div class="preview-title">
+                <i class="fas fa-star"></i> Super Enhanced Image!
+            </div>
+            <img id="result-image" class="preview-image" src="" alt="Enhanced Result">
+            
+            <div class="comparison-view">
+                <div class="comparison-title">Before & After Magic</div>
+                <div class="image-comparison">
+                    <div class="comparison-item">
+                        <img id="compare-before" src="" alt="Original">
+                        <div class="comparison-label">Original</div>
+                    </div>
+                    <div class="comparison-item">
+                        <img id="compare-after" src="" alt="Enhanced">
+                        <div class="comparison-label">Enhanced</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-actions">
+                <button class="btn-download" id="download-btn">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <button class="btn" id="new-image-btn">
+                    <i class="fas fa-plus"></i> New Image
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Powered by <a href="https://github.com/xinntao/Real-ESRGAN" target="_blank">Real-ESRGAN</a> | An open-source image upscaling algorithm</p>
         </div>
     </div>
-
-    <div class="footer">
-        <p>Powered by Real-ESRGAN AI Technology | Mage AI Image Enhancer</p>
-    </div>
-
+    
     <script>
-        const uploadArea = document.getElementById('upload-area');
-        const fileInput = document.getElementById('file-input');
-        const previewContainer = document.getElementById('preview-container');
-        const previewImage = document.getElementById('preview-image');
-        const filename = document.getElementById('filename');
-        const uploadBtn = document.getElementById('upload-btn');
-        const uploadForm = document.getElementById('upload-form');
-        const loader = document.getElementById('loader');
-        const removePreviewBtn = document.getElementById('remove-preview');
-        const modelOptions = document.querySelectorAll('input[name="model"]');
-        const modelDescription = document.getElementById('model-description');
-        const selectedModelInput = document.getElementById('selected-model');
-
-        // Model descriptions
-        const modelDescriptions = {
-            'RealESRGAN_x4plus': 'Standard model balances quality and processing speed.',
-            'RealESRGAN_x4plus_anime_6B': 'Optimized for anime and cartoon images.',
-            'realesr-general-x4v3': 'Enhanced detail for photographs and realistic images.'
-        };
-
-        // Update model description when selection changes
-        modelOptions.forEach(option => {
-            option.addEventListener('change', function() {
-                const modelValue = this.value;
-                modelDescription.textContent = modelDescriptions[modelValue];
-                selectedModelInput.value = modelValue;
-            });
+    // Get all required DOM elements
+    const fileUpload = document.getElementById('file-upload');
+    const uploadArea = document.getElementById('upload-area');
+    const previewContainer = document.getElementById('preview-container');
+    const previewImage = document.getElementById('preview-image');
+    const filename = document.getElementById('filename');
+    const processBtn = document.getElementById('process-btn');
+    const loader = document.getElementById('loader');
+    const uploadForm = document.getElementById('upload-form');
+    const modelOptions = document.querySelectorAll('input[name="model"]');
+    const modelDescription = document.getElementById('model-description');
+    
+    // Model descriptions
+    const modelDescriptions = {
+        'RealESRGAN_x4plus': 'Standard model balances quality and processing speed.',
+        'RealESRGAN_x4plus_anime_6B': 'Specialized model for anime and cartoon images.',
+        'realesr-general-x4v3': 'Enhanced detail for photorealistic images.'
+    };
+    
+    // Update model description when selection changes
+    modelOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            const modelValue = this.value;
+            modelDescription.textContent = modelDescriptions[modelValue];
         });
-
-        // Prevent default drag behaviors
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
-
-        // Highlight drop area when item is dragged over it
-        ['dragenter', 'dragover'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, highlight, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, unhighlight, false);
-        });
-
-        // Handle dropped files
-        uploadArea.addEventListener('drop', handleDrop, false);
-
-        // Handle selected files
-        fileInput.addEventListener('change', handleFiles);
-
-        // Handle form submission
-        uploadForm.addEventListener('submit', handleSubmit);
-
-        // Remove preview
-        removePreviewBtn.addEventListener('click', function() {
-            previewContainer.style.display = 'none';
-            fileInput.value = '';
-            uploadBtn.disabled = true;
-        });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        function highlight() {
-            uploadArea.classList.add('highlight');
-        }
-
-        function unhighlight() {
-            uploadArea.classList.remove('highlight');
-        }
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            fileInput.files = files;
-            handleFiles();
-        }
-
-        function handleFiles() {
-            const file = fileInput.files[0];
-            if (file) {
-                uploadBtn.disabled = false;
-                previewFile(file);
-            } else {
-                uploadBtn.disabled = true;
-                previewContainer.style.display = 'none';
-            }
-        }
-
-        function previewFile(file) {
+    });
+    
+    // File upload handling
+    fileUpload.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
             const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = function() {
-                previewImage.src = reader.result;
-                filename.textContent = file.name;
+            
+            reader.onload = function(event) {
+                previewImage.src = event.target.result;
                 previewContainer.style.display = 'block';
+                filename.textContent = file.name;
+                processBtn.disabled = false;
+            }
+            
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    // Highlight drop area when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        uploadArea.classList.add('highlight');
+    }
+    
+    function unhighlight() {
+        uploadArea.classList.remove('highlight');
+    }
+    
+    // Handle dropped files
+    uploadArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                fileUpload.files = files;
+                const event = new Event('change', { bubbles: true });
+                fileUpload.dispatchEvent(event);
             }
         }
+    }
 
-        function handleSubmit(e) {
+    // Handle form submission
+    uploadForm.addEventListener('submit', function(e) {
+        if (processBtn.disabled) {
             e.preventDefault();
-            
-            // Show loader and hide form
-            uploadArea.style.display = 'none';
-            previewContainer.style.display = 'none';
-            uploadBtn.disabled = true;
-            loader.style.display = 'block';
-            
-            // Submit the form
-            const formData = new FormData(uploadForm);
-            
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(html => {
-                document.body.innerHTML = html;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred during upscaling. Please try again.');
-                uploadArea.style.display = 'block';
-                previewContainer.style.display = 'block';
-                uploadBtn.disabled = false;
-                loader.style.display = 'none';
-            });
+            return;
         }
-    </script>
+        
+        // Show loader and hide preview
+        previewContainer.style.display = 'none';
+        loader.style.display = 'block';
+        processBtn.disabled = true;
+        
+        // We'll also add an input field to the form to track the original image
+        const originalImgSrc = previewImage.src;
+        if (!document.getElementById('original_img_data')) {
+            const originalImgInput = document.createElement('input');
+            originalImgInput.type = 'hidden';
+            originalImgInput.name = 'original_img_data';
+            originalImgInput.id = 'original_img_data';
+            originalImgInput.value = originalImgSrc;
+            uploadForm.appendChild(originalImgInput);
+        } else {
+            document.getElementById('original_img_data').value = originalImgSrc;
+        }
+    });
+    
+    // Function to create confetti animation
+    function createConfetti() {
+        const colors = [
+            '#ff6b6b', // primary
+            '#4ecdc4', // secondary
+            '#ffbe0b', // accent
+            '#f9f7f7' // white
+        ];
+        
+        // Create 50 pieces of confetti
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            
+            // Random position, color and delay
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            
+            // Add to body
+            document.body.appendChild(confetti);
+            
+            // Remove after animation
+            setTimeout(() => {
+                confetti.remove();
+            }, 6000);
+        }
+    }
+    
+    // Check if we should show the result (if arriving from form submission)
+    document.addEventListener('DOMContentLoaded', function() {
+        const resultContainer = document.getElementById('result-container');
+        if (resultContainer && window.location.hash === '#result') {
+            createConfetti();
+            
+            // Smooth scroll to result
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+    
+    // Download button for result page
+    const downloadBtn = document.getElementById('download-btn');
+    const newImageBtn = document.getElementById('new-image-btn');
+    const resultContainer = document.getElementById('result-container');
+    
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function() {
+            const resultImage = document.getElementById('result-image');
+            const link = document.createElement('a');
+            link.href = resultImage.src;
+            link.download = 'enhanced-image.jpg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
+    
+    if (newImageBtn) {
+        newImageBtn.addEventListener('click', function() {
+            window.location.href = '/';
+        });
+    }
+    
+    // Create floating background bubbles
+    const bubbleBackground = document.getElementById('bubble-background');
+    
+    function createBubbles() {
+        // Clear existing bubbles
+        bubbleBackground.innerHTML = '';
+        
+        // Create new bubbles
+        for (let i = 0; i < 20; i++) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('background-bubble');
+            
+            // Random size between 20px and 120px
+            const size = Math.floor(Math.random() * 100) + 20;
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            
+            // Random position
+            bubble.style.left = `${Math.random() * 100}%`;
+            bubble.style.top = `${Math.random() * 100}%`;
+            
+            // Random animation duration between 20s and 40s
+            const duration = Math.floor(Math.random() * 20) + 20;
+            bubble.style.setProperty('--bubble-duration', `${duration}s`);
+            
+            // Random animation delay
+            bubble.style.setProperty('--bubble-delay', `${Math.random() * -40}s`);
+            
+            // Random distance for movement
+            const distance = Math.floor(Math.random() * 100) + 50;
+            bubble.style.setProperty('--bubble-distance', `${distance}px`);
+            
+            // Random color - light pastel colors
+            const hue = Math.floor(Math.random() * 360);
+            const colors = [
+                'rgba(255, 107, 107, 0.1)',  // Pink
+                'rgba(78, 205, 196, 0.1)',   // Teal
+                'rgba(255, 190, 11, 0.1)',   // Yellow
+                'rgba(139, 92, 246, 0.1)'    // Purple
+            ];
+            bubble.style.background = colors[Math.floor(Math.random() * colors.length)];
+            
+            bubbleBackground.appendChild(bubble);
+        }
+    }
+    
+    // Create initial bubbles
+    createBubbles();
+    
+    // Recreate bubbles on window resize
+    window.addEventListener('resize', createBubbles);
+</script>
 </body>
 </html>
