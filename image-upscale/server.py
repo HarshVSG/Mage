@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, send_from_directory
+from flask import Flask, request, render_template, redirect, url_for, send_from_directory, jsonify
 import os
 import subprocess
 import time
@@ -73,9 +73,10 @@ def cleanup_immediately():
                 try:
                     if os.path.isfile(f):
                         os.remove(f)
+                        print(f"Deleted file: {f}")
                     elif os.path.isdir(f):
                         shutil.rmtree(f)
-                    print(f"Deleted file: {f}")
+                        print(f"Deleted directory: {f}")
                 except Exception as e:
                     print(f"Error deleting {f}: {e}")
     except Exception as e:
@@ -176,7 +177,7 @@ def upload():
             return f'Processing failed with error: {result.stderr}', 500
     except subprocess.TimeoutExpired:
         print("Command timed out after 120 seconds")
-        return 'Processing timed out, please try again with a smaller image.', 504
+        return render_template('timeout.html'), 504
     except Exception as e:
         print(f"Error running command: {str(e)}")
         return f'Error processing image: {str(e)}', 500
@@ -404,23 +405,33 @@ def show_result(filename):
 
 @app.route('/cleanup', methods=['GET', 'POST'])
 def cleanup():
-    """Endpoint to handle cleanup requests via beacon API"""
+    """Endpoint to handle cleanup requests via beacon API or regular requests"""
+    # Ensure we're cleaning up both folders
     cleanup_immediately()
     SESSION_FILES.clear()
     return '', 204  # Return empty response with "No Content" status
 
 @app.route('/download/<filename>')
-def download_file(filename):
-    # After download, schedule file for cleanup
-    session_id = request.cookies.get('session', str(time.time()))
-    if session_id not in SESSION_FILES:
-        SESSION_FILES[session_id] = []
-    
-    file_path = os.path.join(OUTPUT_FOLDER, filename)
-    if os.path.exists(file_path):
-        SESSION_FILES[session_id].append(file_path)
-    
-    return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
+def download(filename):
+    """Handle downloading of processed images with proper error handling"""
+    try:
+        # Ensure the path is properly constructed using os.path.join
+        file_path = os.path.join(OUTPUT_FOLDER, filename)
+        
+        # Check if the file exists before attempting to send it
+        if not os.path.exists(file_path):
+            app.logger.error(f"File not found: {file_path}")
+            return jsonify({"error": "File not found"}), 404
+        
+        # Use send_from_directory instead of send_file for better path handling
+        return send_from_directory(
+            directory=OUTPUT_FOLDER,
+            path=filename,
+            as_attachment=True
+        )
+    except Exception as e:
+        app.logger.error(f"Error downloading file: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 # Define additional static folders
 @app.route('/static/images/<path:filename>')

@@ -36,7 +36,7 @@
             </div>
             
             <div class="preview-actions">
-                <a href="/download/{{ output_filename }}" class="btn-download">
+                <a href="javascript:void(0)" onclick="downloadImage('{{ output_filename }}')" class="btn-download">
                     <i class="fas fa-download"></i> Download
                 </a>
                 <a href="/" class="btn" id="new-image-btn">
@@ -46,7 +46,7 @@
         </div>
         
         <div class="footer">
-            <p>© 2023 AI Image Upscaler</p>
+            <p>Powered by <a href="https://github.com/xinntao/Real-ESRGAN" target="_blank">Real-ESRGAN</a> | An open-source image upscaling algorithm</p>
         </div>
     </div>
     
@@ -80,9 +80,55 @@
             }
         }
         
+        // Download image with error handling
+        function downloadImage(filename) {
+            fetch(`/download/${filename}`)
+                .then(response => {
+                    if (!response.ok) {
+                        if(response.status === 404) {
+                            throw new Error('Image not found. Please try upscaling again.');
+                        }
+                        throw new Error('Failed to download image. Please try again.');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                })
+                .catch(error => {
+                    console.error('Download error:', error);
+                    alert(error.message);
+                });
+        }
+        
         // Run the confetti animation when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             createConfetti();
+            
+            // Add event listener for the "New Image" button to clean up
+            const newImageBtn = document.getElementById('new-image-btn');
+            if (newImageBtn) {
+                newImageBtn.addEventListener('click', function(e) {
+                    // Send cleanup request before navigating to new page
+                    fetch('/cleanup', {
+                        method: 'POST',
+                        keepalive: true // This ensures the request completes even if the page navigates away
+                    });
+                });
+            }
+        });
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            // Use the Navigator.sendBeacon() method for reliable cleanup on page exit
+            navigator.sendBeacon('/cleanup');
         });
     </script>
 </body>

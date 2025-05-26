@@ -3,13 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mage</title>
+    <title>Mage - Anime Image Enhancer</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Comfortaa:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Fix for distorted bubble background */
+        .bubble-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        .background-bubble {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float calc(var(--bubble-duration, 30s)) ease-in-out infinite;
+            animation-delay: var(--bubble-delay, 0s);
+            transform: translate(0, 0);
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translate(0, 0);
+            }
+            50% {
+                transform: translate(calc(var(--bubble-distance, 50px)), calc(-1 * var(--bubble-distance, 50px)));
+            }
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+        
+        /* Fix for decorative bubbles */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.3));
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            z-index: -1;
+        }
+        
+        .bubble-1 {
+            width: 150px;
+            height: 150px;
+            top: -50px;
+            left: -30px;
+        }
+        
+        .bubble-2 {
+            width: 80px;
+            height: 80px;
+            top: 20px;
+            right: 120px;
+        }
+        
+        .bubble-3 {
+            width: 60px;
+            height: 60px;
+            top: 70px;
+            right: 40px;
+        }
+    </style>
 </head>
 <body>
-    <!-- Add floating bubble background -->
+    <!-- Add floating bubble background with anime text -->
     <div class="bubble-background" id="bubble-background"></div>
     
     <div class="container">
@@ -20,7 +84,7 @@
         
         <div class="header">
             <h1>Mage</h1>
-            <p class="app-description">✨ Enhance your images with Real-ESRGAN ✨</p>
+            <p class="app-description">✨ すごい! Anime Image Enhancer ✨</p>
         </div>
         
         <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
@@ -29,7 +93,7 @@
                 <div class="options-column">
                     <div class="settings-panel">
                         <div class="panel-title">
-                            <i class="fas fa-microchip"></i> Model Selection
+                            <i class="fas fa-microchip"></i> モデル選択 (Model Selection)
                         </div>
                         <div class="model-options">
                             <div class="model-option">
@@ -38,7 +102,7 @@
                             </div>
                             <div class="model-option">
                                 <input type="radio" id="model-realesrgan-x4plus-anime" name="model" value="RealESRGAN_x4plus_anime_6B">
-                                <label for="model-realesrgan-x4plus-anime">Real-ESRGAN-x4plus-anime</label>
+                                <label for="model-realesrgan-x4plus-anime">Anime Specialist 🌸</label>
                             </div>
                             <div class="model-option">
                                 <input type="radio" id="model-realesrnet-x4plus" name="model" value="realesr-general-x4v3">
@@ -52,11 +116,11 @@
                     
                     <div class="options-panel">
                         <div class="panel-title">
-                            <i class="fas fa-cog"></i> Settings
+                            <i class="fas fa-cog"></i> 設定 (Settings)
                         </div>
                         
                         <div class="option-group">
-                            <label for="resolution">Scale Factor:</label>
+                            <label for="resolution">スケールファクター (Scale):</label>
                             <select id="resolution" name="resolution">
                                 <option value="2">2x</option>
                                 <option value="4" selected>4x</option>
@@ -65,7 +129,7 @@
                         </div>
                         
                         <div class="option-group">
-                            <label for="denoise">Denoise Strength:</label>
+                            <label for="denoise">ノイズ除去 (Denoise):</label>
                             <select id="denoise" name="denoise">
                                 <option value="0">None</option>
                                 <option value="0.3">Low</option>
@@ -81,15 +145,15 @@
                 <div class="content-column">
                     <div class="upload-area" id="upload-area">
                         <i class="fas fa-cloud-upload-alt"></i>
-                        <p>Drag & Drop your image here</p>
-                        <p>or click to browse files</p>
+                        <p>ドラッグ＆ドロップ (Drag & Drop)</p>
+                        <p>your image here</p>
                         <input type="file" id="file-upload" name="image" accept="image/*">
                     </div>
                     
                     <div class="preview-container" id="preview-container" style="display: none;">
                         <div class="preview-header">
                             <div class="preview-title">
-                                <i class="fas fa-image"></i> Image Preview
+                                <i class="fas fa-image"></i> イメージプレビュー (Preview)
                             </div>
                         </div>
                         <img id="preview-image" class="preview-image" src="" alt="Preview">
@@ -97,13 +161,37 @@
                     </div>
                     
                     <div class="loader" id="loader" style="display: none;">
-                        <div class="loader-spinner"></div>
-                        <p>Enhancing your image...</p>
+                        <div class="magic-loader">
+                            <!-- Anime-style magical loader -->
+                            <div class="magic-circle"></div>
+                            <div class="kawaii-character">
+                                <div class="character-body"></div>
+                                <div class="character-eyes">
+                                    <div class="character-eye left"></div>
+                                    <div class="character-eye right"></div>
+                                </div>
+                                <div class="character-blush left"></div>
+                                <div class="character-blush right"></div>
+                                <div class="character-mouth"></div>
+                            </div>
+                            <div class="magic-star star1"></div>
+                            <div class="magic-star star2"></div>
+                            <div class="magic-star star3"></div>
+                            <div class="magic-star star4"></div>
+
+                            <!-- Keep these for backward compatibility -->
+                            <div class="magic-wand"></div>
+                            <div class="sparkle sparkle-1"></div>
+                            <div class="sparkle sparkle-2"></div>
+                            <div class="sparkle sparkle-3"></div>
+                            <div class="sparkle sparkle-4"></div>
+                        </div>
+                        <p>魔法をかけています... (Casting Magic)</p>
                     </div>
                     
                     <div class="btn-container">
-                        <button type="submit" class="btn" id="process-btn" disabled>
-                            <i class="fas fa-magic"></i> Enhance Image
+                        <button type="submit" class="btn" id="process-btn" disabled data-tooltip="Enhance with Anime Magic!">
+                            <i class="fas fa-magic"></i> エンハンス! (Enhance)
                         </button>
                     </div>
                 </div>
@@ -112,30 +200,30 @@
         
         <div class="preview-container" id="result-container" style="display:none;">
             <div class="preview-title">
-                <i class="fas fa-star"></i> Super Enhanced Image!
+                <i class="fas fa-star"></i> エンハンス完了! (Enhanced!)
             </div>
             <img id="result-image" class="preview-image" src="" alt="Enhanced Result">
             
             <div class="comparison-view">
-                <div class="comparison-title">Before & After Magic</div>
+                <div class="comparison-title">ビフォー＆アフター (Before & After)</div>
                 <div class="image-comparison">
                     <div class="comparison-item">
                         <img id="compare-before" src="" alt="Original">
-                        <div class="comparison-label">Original</div>
+                        <div class="comparison-label">ビフォー</div>
                     </div>
                     <div class="comparison-item">
                         <img id="compare-after" src="" alt="Enhanced">
-                        <div class="comparison-label">Enhanced</div>
+                        <div class="comparison-label">アフター</div>
                     </div>
                 </div>
             </div>
             
             <div class="preview-actions">
-                <button class="btn-download" id="download-btn">
-                    <i class="fas fa-download"></i> Download
-                </button>
-                <button class="btn" id="new-image-btn">
-                    <i class="fas fa-plus"></i> New Image
+                <a href="javascript:void(0)" onclick="downloadImage(currentOutputFilename)" class="btn-download" id="download-btn" data-tooltip="Save your enhanced anime!">
+                    <i class="fas fa-download"></i> ダウンロード
+                </a>
+                <button class="btn" id="new-image-btn" data-tooltip="Enhance another image!">
+                    <i class="fas fa-plus"></i> 新しい画像
                 </button>
             </div>
         </div>
@@ -161,7 +249,7 @@
     // Model descriptions
     const modelDescriptions = {
         'RealESRGAN_x4plus': 'Standard model balances quality and processing speed.',
-        'RealESRGAN_x4plus_anime_6B': 'Specialized model for anime and cartoon images.',
+        'RealESRGAN_x4plus_anime_6B': '✨ Specialized for anime, manga and illustrations! Perfect for your waifu! ✨',
         'realesr-general-x4v3': 'Enhanced detail for photorealistic images.'
     };
     
@@ -264,20 +352,31 @@
     // Function to create confetti animation
     function createConfetti() {
         const colors = [
-            '#ff6b6b', // primary
-            '#4ecdc4', // secondary
-            '#ffbe0b', // accent
-            '#f9f7f7' // white
+            '#FF61A6', // primary
+            '#7B78FF', // secondary
+            '#FFE66D', // accent
+            '#FFFFFF' // white
         ];
+        
+        // Create emoji confetti too
+        const emojis = ['✨', '💖', '🌟', '✿', '⭐'];
         
         // Create 50 pieces of confetti
         for (let i = 0; i < 50; i++) {
             const confetti = document.createElement('div');
             confetti.className = 'confetti';
             
+            // Random type (regular or emoji)
+            if (Math.random() > 0.7) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                confetti.style.background = 'transparent';
+                confetti.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            } else {
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            }
+            
             // Random position, color and delay
             confetti.style.left = Math.random() * 100 + 'vw';
-            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
             confetti.style.animationDelay = Math.random() * 2 + 's';
             
             // Add to body
@@ -324,45 +423,47 @@
         });
     }
     
-    // Create floating background bubbles
+    // Create floating background bubbles with anime text
     const bubbleBackground = document.getElementById('bubble-background');
     
     function createBubbles() {
         // Clear existing bubbles
         bubbleBackground.innerHTML = '';
         
-        // Create new bubbles
-        for (let i = 0; i < 20; i++) {
+        // Japanese words related to anime and magic
+        const animeWords = ['キラキラ', 'マジカル', 'すごい', 'カワイイ', '魔法', 'アニメ', '美しい'];
+        
+        // Create new bubbles - reduced count for better performance
+        for (let i = 0; i < 15; i++) {
             const bubble = document.createElement('div');
             bubble.classList.add('background-bubble');
             
-            // Random size between 20px and 120px
-            const size = Math.floor(Math.random() * 100) + 20;
+            // Random size between 30px and 100px (more consistent sizing)
+            const size = Math.floor(Math.random() * 70) + 30;
             bubble.style.width = `${size}px`;
             bubble.style.height = `${size}px`;
             
-            // Random position
-            bubble.style.left = `${Math.random() * 100}%`;
-            bubble.style.top = `${Math.random() * 100}%`;
+            // Improved positioning to avoid clumping
+            bubble.style.left = `${Math.random() * 90 + 5}%`;
+            bubble.style.top = `${Math.random() * 90 + 5}%`;
             
-            // Random animation duration between 20s and 40s
-            const duration = Math.floor(Math.random() * 20) + 20;
+            // Longer animation duration for smoother movement
+            const duration = Math.floor(Math.random() * 15) + 25;
             bubble.style.setProperty('--bubble-duration', `${duration}s`);
             
-            // Random animation delay
-            bubble.style.setProperty('--bubble-delay', `${Math.random() * -40}s`);
+            // Better distributed animation delay
+            bubble.style.setProperty('--bubble-delay', `${Math.random() * -30}s`);
             
-            // Random distance for movement
-            const distance = Math.floor(Math.random() * 100) + 50;
+            // Less extreme movement distance
+            const distance = Math.floor(Math.random() * 60) + 20;
             bubble.style.setProperty('--bubble-distance', `${distance}px`);
             
-            // Random color - light pastel colors
-            const hue = Math.floor(Math.random() * 360);
+            // Reduced opacity for subtle background effect
             const colors = [
-                'rgba(255, 107, 107, 0.1)',  // Pink
-                'rgba(78, 205, 196, 0.1)',   // Teal
-                'rgba(255, 190, 11, 0.1)',   // Yellow
-                'rgba(139, 92, 246, 0.1)'    // Purple
+                'rgba(255, 97, 166, 0.08)',  // Pink
+                'rgba(123, 120, 255, 0.08)',  // Purple
+                'rgba(255, 230, 109, 0.08)',  // Yellow
+                'rgba(89, 233, 226, 0.08)'    // Cyan
             ];
             bubble.style.background = colors[Math.floor(Math.random() * colors.length)];
             
@@ -373,8 +474,54 @@
     // Create initial bubbles
     createBubbles();
     
-    // Recreate bubbles on window resize
-    window.addEventListener('resize', createBubbles);
+    // Recreate bubbles only when window size changes significantly
+    let lastWidth = window.innerWidth;
+    let lastHeight = window.innerHeight;
+    window.addEventListener('resize', function() {
+        // Only recreate if the size changed significantly (by at least 20%)
+        if (Math.abs(lastWidth - window.innerWidth) > window.innerWidth * 0.2 ||
+            Math.abs(lastHeight - window.innerHeight) > window.innerHeight * 0.2) {
+            lastWidth = window.innerWidth;
+            lastHeight = window.innerHeight;
+            createBubbles();
+        }
+    });
+    
+    // Global variable to store the current output filename
+    let currentOutputFilename = '';
+    
+    // Download image with error handling
+    function downloadImage(filename) {
+        if (!filename) {
+            alert('No image available to download');
+            return;
+        }
+        
+        fetch(`/download/${filename}`)
+            .then(response => {
+                if (!response.ok) {
+                    if(response.status === 404) {
+                        throw new Error('Image not found. Please try upscaling again.');
+                    }
+                    throw new Error('Failed to download image. Please try again.');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            })
+            .catch(error => {
+                console.error('Download error:', error);
+                alert(error.message);
+            });
+    }
 </script>
 </body>
 </html>
